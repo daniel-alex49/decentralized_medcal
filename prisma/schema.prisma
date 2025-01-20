@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String   @id @default(cuid()) @map("_id")
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now()) @map(name: "created_at")
+  updatedAt         DateTime @updatedAt      @map(name: "updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map(name: "accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid()) @map("_id")
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map(name: "sessions")
+}
+
+enum UserRole {
+  unset
+  patient
+  doctor
+  admin
+}
+
+model User {
+  id            String    @id @default(cuid()) @map("_id")
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now()) @map(name: "created_at")
+  updatedAt     DateTime  @updatedAt      @map(name: "updated_at")
+  role          UserRole  @default(unset)
+
+  accounts Account[]
+  sessions Session[]
+  patients Patient[]
+  doctors  Doctor[]
+  @@map(name: "users")
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid()) @map("_id")
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map(name: "verification_tokens")
+}
+
+model Doctor {
+  id           String     @id @default(cuid()) @map("_id")
+  userId       String
+  phoneNumber  String     @unique
+  aadharNumber String
+  mbbsId       String
+  specialty    String
+  verified     Boolean    @default(false)
+  blockId      String     @unique
+  appointments Appointment[]
+  Prescription Prescription[]
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessRequests Req_access[]
+
+  @@index([userId])
+
+  @@index([aadharNumber])
+  @@index([mbbsId])
+}
+
+model Patient {
+  id               String     @id @default(cuid()) @map("_id")
+  userId           String
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  gender           String
+  dateOfBirth      DateTime
+  bloodType        String?   
+  chronicDiseases  String[]  
+  emergencyContact String
+  blockId          String    @unique
+  appointments     Appointment[]
+  prescriptions    Prescription[]
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessRequests   Req_access[]
+
+  @@index([userId])
+
+}
+
+model Appointment {
+  id           String            @id @default(cuid()) @map("_id")
+  doctorId     String
+  patientId    String
+  startTime    DateTime
+  endTime      DateTime
+  status       AppointmentStatus @default(PENDING)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  doctor       Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient      Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, startTime, endTime])
+  @@unique([patientId, startTime, endTime])
+}
+
+// Enum to track appointment status
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+}
+
+model Medication {
+    id                     String      @id @default(uuid()) @map("_id")
+    prescId                String
+    name                   String
+    dosage                 String
+    duration               String
+    additionalInstructions String?
+
+    prescriptions          Prescription   @relation(fields: [prescId], references: [id], onDelete: Cascade)
+}
+
+model Prescription {
+    id                     String      @id @default(uuid()) @map("_id")
+    doctorId               String
+    patientId              String
+    issueDate              DateTime    @default(now())
+    validTill              DateTime
+    medications            Medication[]
+
+    doctor                 Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+    patient                Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Req_access {
+  id           String            @id @default(cuid()) @map("_id")
+  doctorId     String           
+  patientId    String         
+  status       AppointmentStatus     @default(PENDING)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  doctor       Doctor            @relation(fields: [doctorId], references: [blockId], onDelete: Cascade)
+  patient      Patient           @relation(fields: [patientId], references: [blockId], onDelete: Cascade)
+
+  @@unique([doctorId, patientId]) 
+}
+
+
