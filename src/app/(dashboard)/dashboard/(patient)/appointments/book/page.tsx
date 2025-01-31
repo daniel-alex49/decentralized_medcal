@@ -57,7 +57,7 @@ const getDoctorRecommendation = async (symptoms: string): Promise<string> => {
 
 export default function AppointmentBookingPage() {
   // State
-  const [doctors, setDoctors] = useState<DoctorData[]>([])
+  const [doctors, setDoctors] = useState<DoctorData[]>(sampleDoctors)
   const [searchQuery, setSearchQuery] = useState("")
   const [symptoms, setSymptoms] = useState("")
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorData | null>(null)
@@ -81,7 +81,7 @@ export default function AppointmentBookingPage() {
     try {
       setIsFetchingDoctors(true)
       const response = await axios.get("/api/doctors")
-      setDoctors([...response.data])
+      setDoctors([...doctors, ...response.data])
     } catch (error) {
       toast({
         title: "Error",
