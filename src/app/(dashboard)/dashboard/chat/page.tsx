@@ -39,7 +39,7 @@ const JoinPage = () => {
     e.preventDefault()
     if (username.trim() && roomName.trim()) {
       setIsJoining(true)
-      localStorage.setItem(
+      sessionStorage.setItem(
         "chatCredentials",
         JSON.stringify({
           username: username.trim(),
