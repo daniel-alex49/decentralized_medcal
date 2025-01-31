@@ -131,7 +131,7 @@ const ChatRoom = ({ params }: { params: { roomId: string } }) => {
 
     return () => {
       socket.disconnect()
-      localStorage.removeItem("chatCredentials")
+      sessionStorage.removeItem("chatCredentials")
     }
   }, [params.roomId, router])
 
