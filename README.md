@@ -199,7 +199,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 
 ## Contact
-For support or inquiries, please contact us at [](rohansen856@gmail.com).
+For support or inquiries, please contact us at [](wswhfd70@gmail.com).
 
 ## Acknowledgements
 - **Auth0**: For secure authentication solutions.
